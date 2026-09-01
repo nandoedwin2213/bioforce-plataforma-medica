@@ -1,16 +1,17 @@
 {
   "short_name": "Bioforce",
-  "name": "Bioforce Medical Platform • Calculadora de Convenios",
+  "name": "Bioforce Medical Center - Plataforma Médica",
   "icons": [
     {
       "src": "/logo-bioforce.jpg",
-      "sizes": "192x192 512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "sizes": "192x192 512x512"
     }
   ],
   "start_url": "/",
   "background_color": "#06152b",
   "theme_color": "#00b865",
   "display": "standalone",
-  "orientation": "portrait-primary"
+  "orientation": "any",
+  "description": "Sistema Inteligente de Gestión de Convenios, Cotización de Copagos & Reembolsos con Saludsa para Bioforce Medical Center."
 }
