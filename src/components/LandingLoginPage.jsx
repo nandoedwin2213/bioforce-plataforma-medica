@@ -19,7 +19,8 @@ import {
   Stethoscope,
   ChevronRight,
   Download,
-  Laptop
+  Laptop,
+  X
 } from 'lucide-react';
 
 const getApiUrl = (endpoint) => {
@@ -39,15 +40,14 @@ export default function LandingLoginPage({ onLoginSuccess }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [successNote, setSuccessNote] = useState('');
 
-  // PWA Install Prompt State
+  // PWA Install Prompt State & Modal
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [showInstallModal, setShowInstallModal] = useState(false);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setIsInstallable(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -58,15 +58,14 @@ export default function LandingLoginPage({ onLoginSuccess }) {
   }, []);
 
   const handleInstallPwa = async () => {
-    if (!deferredPrompt) {
-      alert('Para instalar en tu escritorio de Windows:\n1. Haz clic en los 3 puntos de tu navegador (arriba a la derecha).\n2. Selecciona "Guardar y compartir" -> "Instalar Bioforce Medical Center".');
-      return;
-    }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setIsInstallable(false);
-      setDeferredPrompt(null);
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } else {
+      setShowInstallModal(true);
     }
   };
 
@@ -400,6 +399,54 @@ export default function LandingLoginPage({ onLoginSuccess }) {
         </div>
 
       </div>
+
+      {/* Styled Windows PWA Installation Modal */}
+      {showInstallModal && (
+        <div className="modal-overlay" style={{ background: 'rgba(6, 21, 43, 0.85)', backdropFilter: 'blur(8px)', zIndex: 9999 }}>
+          <div className="modal-content card" style={{ maxWidth: '520px', width: '100%', padding: '2.25rem', position: 'relative' }}>
+            <button className="modal-close" onClick={() => setShowInstallModal(false)}>
+              <X size={20} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.25rem' }}>
+              <div style={{ background: 'rgba(0, 184, 101, 0.1)', color: '#00b865', padding: '12px', borderRadius: '14px' }}>
+                <Laptop size={28} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.3rem', color: '#06152b', fontWeight: '900', margin: 0 }}>Instalar App de Escritorio Windows</h3>
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: '600' }}>PWA Oficial de Bioforce Medical Center</span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.9rem', color: '#334155', lineHeight: '1.6', fontWeight: '500', marginBottom: '1.25rem' }}>
+              Para anclar el ícono oficial de <strong>Bioforce</strong> a tu Barra de Tareas de Windows y Escritorio:
+            </p>
+
+            <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.88rem', color: '#0f172a', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                <span style={{ background: '#00b865', color: '#ffffff', width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.78rem', flexShrink: 0, marginTop: 2 }}>1</span>
+                <span>En tu navegador (Chrome o Edge), haz clic en los <strong>3 puntos `...`</strong> arriba a la derecha.</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                <span style={{ background: '#00b865', color: '#ffffff', width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.78rem', flexShrink: 0, marginTop: 2 }}>2</span>
+                <span>Selecciona <strong>"Guardar y compartir"</strong> o <strong>"Aplicaciones"</strong>.</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                <span style={{ background: '#00b865', color: '#ffffff', width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.78rem', flexShrink: 0, marginTop: 2 }}>3</span>
+                <span>Haz clic en <strong>"Instalar Bioforce Medical Center"</strong>.</span>
+              </div>
+            </div>
+
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setShowInstallModal(false)}
+              style={{ width: '100%', justifyContent: 'center', padding: '0.85rem', fontWeight: '800' }}
+            >
+              Entendido 👍
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
