@@ -545,12 +545,11 @@ export default function App() {
     triggerToast(`Estado del reembolso actualizado a: ${newStatus}`);
   };
 
-  // Render Landing Page if currentView is 'landing'
-  if (currentView === 'landing') {
+  // Render Landing Page if currentView is 'landing' or !adminUser (Strict OTP Auth)
+  if (currentView === 'landing' || !adminUser) {
     return (
       <LandingLoginPage 
         onLoginSuccess={handleLoginSuccess}
-        onGuestAccess={() => setCurrentView('app')}
       />
     );
   }

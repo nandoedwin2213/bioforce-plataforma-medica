@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   KeyRound, 
   Mail, 
@@ -17,7 +17,9 @@ import {
   Award,
   Users,
   Stethoscope,
-  ChevronRight
+  ChevronRight,
+  Download,
+  Laptop
 } from 'lucide-react';
 
 const getApiUrl = (endpoint) => {
@@ -27,7 +29,7 @@ const getApiUrl = (endpoint) => {
   return endpoint;
 };
 
-export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
+export default function LandingLoginPage({ onLoginSuccess }) {
   const DEFAULT_EMAIL = '2@bioforcemil.com';
 
   const [step, setStep] = useState(1); // 1: Email Request, 2: OTP Verification
@@ -36,6 +38,37 @@ export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successNote, setSuccessNote] = useState('');
+
+  // PWA Install Prompt State
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallPwa = async () => {
+    if (!deferredPrompt) {
+      alert('Para instalar en tu escritorio de Windows:\n1. Haz clic en los 3 puntos de tu navegador (arriba a la derecha).\n2. Selecciona "Guardar y compartir" -> "Instalar Bioforce Medical Center".');
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsInstallable(false);
+      setDeferredPrompt(null);
+    }
+  };
 
   // Step 1: Request OTP via Resend
   const handleSendOtp = async (e) => {
@@ -158,13 +191,13 @@ export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
 
             <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem', fontSize: '0.85rem', color: '#cbd5e1', fontWeight: '700' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <CheckCircle size={16} style={{ color: '#00b865' }} /> Fisioterapia de Cadetes Militaries
+                <CheckCircle size={16} style={{ color: '#00b865' }} /> Fisioterapia de Cadetes Militares
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <CheckCircle size={16} style={{ color: '#00b865' }} /> Convenios Saludsa / Humana / BMI
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <CheckCircle size={16} style={{ color: '#00b865' }} /> Firma Dra. Elena Analuisa
+                <CheckCircle size={16} style={{ color: '#00b865' }} /> Acceso Protegido por Código OTP
               </span>
             </div>
           </div>
@@ -247,9 +280,9 @@ export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
             </div>
           </div>
 
-          {/* Bioforce Excellence Banner */}
+          {/* Install Desktop App Card */}
           <div style={{
-            background: 'linear-gradient(135deg, #00b865 0%, #009850 100%)',
+            background: 'linear-gradient(135deg, #06152b 0%, #0a2540 100%)',
             color: '#ffffff',
             borderRadius: 'var(--radius-xl)',
             padding: '1.5rem 1.75rem',
@@ -257,23 +290,31 @@ export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '1.5rem',
-            boxShadow: '0 12px 30px rgba(0, 184, 101, 0.25)'
+            boxShadow: '0 12px 30px rgba(6, 21, 43, 0.2)'
           }}>
             <div>
-              <span style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', color: '#e6f7ef', display: 'block' }}>BIOFORCE MILITARY EXCELLENCE</span>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: '900', margin: 0, color: '#ffffff' }}>
-                RENDIMIENTO FÍSICO & RECUPERACIÓN DE CADETES
+              <span style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', color: '#00b865', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <Laptop size={14} /> APLICACIÓN DE ESCRITORIO WINDOWS
+              </span>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: '900', margin: '0.2rem 0 0 0', color: '#ffffff' }}>
+                INSTALAR EN LA BARRA DE TAREAS
               </h4>
-              <p style={{ fontSize: '0.82rem', color: '#e6f7ef', marginTop: '2px', margin: 0 }}>
-                Certificaciones de rehabilitación avanzada para aseguradoras con firma médica autorizada.
+              <p style={{ fontSize: '0.82rem', color: '#cbd5e1', marginTop: '2px', margin: 0 }}>
+                Accede a la plataforma médica desde tu escritorio como una aplicación nativa.
               </p>
             </div>
-            <Award size={36} style={{ color: '#ffffff', opacity: 0.9, flexShrink: 0 }} />
+            <button
+              onClick={handleInstallPwa}
+              className="btn btn-primary"
+              style={{ padding: '0.75rem 1.2rem', fontSize: '0.85rem', fontWeight: '800', whiteSpace: 'nowrap' }}
+            >
+              <Download size={16} /> Instalar en Windows
+            </button>
           </div>
 
         </div>
 
-        {/* Right Column: Premium High-Tech Login Portal */}
+        {/* Right Column: Premium High-Tech Login Portal ONLY */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
           <div style={{
@@ -288,8 +329,8 @@ export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
                 <Lock size={24} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1.3rem', color: '#06152b', fontWeight: '900', margin: 0 }}>Acceso de Administrador</h3>
-                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: '600' }}>Autenticación segura por código OTP</span>
+                <h3 style={{ fontSize: '1.3rem', color: '#06152b', fontWeight: '900', margin: 0 }}>Acceso Único Autorizado</h3>
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: '600' }}>Autenticación obligatoria por código OTP</span>
               </div>
             </div>
 
@@ -352,17 +393,10 @@ export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
             )}
           </div>
 
-          {/* Guest Direct Access Button */}
-          <div style={{ textAlign: 'center' }}>
-            <button 
-              className="btn btn-outline"
-              onClick={onGuestAccess}
-              style={{ width: '100%', justifyContent: 'center', padding: '0.9rem', fontSize: '0.88rem', fontWeight: '700' }}
-            >
-              <span>Acceder como Personal de Recepción (Cotizador)</span>
-              <ChevronRight size={16} />
-            </button>
+          <div style={{ textAlign: 'center', fontSize: '0.78rem', color: '#64748b', fontWeight: '600' }}>
+            <Lock size={12} style={{ display: 'inline', marginRight: 4 }} /> Sistema protegido con cifrado SSL & Resend OTP Auth
           </div>
+
         </div>
 
       </div>
