@@ -42,7 +42,7 @@ const AUTHORIZED_EMAILS = [
   'info@esmabioforce.com',
   '2@bioforcemil.com',
   'nandoedwin2213@gmail.com',
-  (process.env.ADMIN_EMAIL || 'admin@esmabioforce.com').toLowerCase()
+  (process.env.ADMIN_EMAIL || '2@bioforcemil.com').toLowerCase()
 ];
 
 // --- AUTH ENDPOINTS (Resend OTP Login) ---
@@ -93,7 +93,6 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
     // Send Email via Resend SDK with esmabioforce.com sender
     let emailSent = false;
-    let resendMessage = '';
 
     if (RESEND_API_KEY && RESEND_API_KEY.startsWith('re_')) {
       try {
@@ -116,13 +115,9 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
         if (sendResult && sendResult.data && sendResult.data.id) {
           emailSent = true;
-        } else if (sendResult && sendResult.error) {
-          console.log('[Resend API Note]:', sendResult.error.message);
-          resendMessage = sendResult.error.message;
         }
       } catch (resendErr) {
         console.error('Error enviando correo con Resend:', resendErr);
-        resendMessage = resendErr.message;
       }
     }
 
@@ -326,7 +321,10 @@ app.patch('/api/quotes/:quoteNum/status', async (req, res) => {
   }
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor API Bioforce (esmabioforce.com) escuchando en http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor API Bioforce (esmabioforce.com) escuchando en http://localhost:${PORT}`);
+  });
+}
+
+export default app;

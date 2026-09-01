@@ -20,6 +20,13 @@ import {
   ChevronRight
 } from 'lucide-react';
 
+const getApiUrl = (endpoint) => {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return `http://localhost:5051${endpoint}`;
+  }
+  return endpoint;
+};
+
 export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
   const DEFAULT_EMAIL = '2@bioforcemil.com';
 
@@ -45,7 +52,7 @@ export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
     setSuccessNote('');
 
     try {
-      const response = await fetch('http://localhost:5051/api/auth/send-otp', {
+      const response = await fetch(getApiUrl('/api/auth/send-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail })
@@ -77,7 +84,7 @@ export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
     setErrorMsg('');
 
     try {
-      const response = await fetch('http://localhost:5051/api/auth/verify-otp', {
+      const response = await fetch(getApiUrl('/api/auth/verify-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: otpCode })

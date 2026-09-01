@@ -39,6 +39,13 @@ import {
   Home
 } from 'lucide-react';
 
+const getApiUrl = (endpoint) => {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return `http://localhost:5051${endpoint}`;
+  }
+  return endpoint;
+};
+
 export const COPAGO_TREATMENTS = [
   { id: 'evaluacion', name: 'EVALUACIÓN INICIAL', defaultPrice: 0 },
   { id: 'terapia', name: 'TERAPIA FÍSICA', defaultPrice: 17 },
@@ -257,7 +264,7 @@ export default function App() {
 
   // Fetch quotes from API Server on load
   useEffect(() => {
-    fetch('http://localhost:5051/api/quotes')
+    fetch(getApiUrl('/api/quotes'))
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
@@ -492,7 +499,7 @@ export default function App() {
     });
 
     // Send to Node API / Neon DB
-    fetch('http://localhost:5051/api/quotes', {
+    fetch(getApiUrl('/api/quotes'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newQuoteRecord)
@@ -529,7 +536,7 @@ export default function App() {
     setQuotesHistory(prev => prev.map(q => q.quoteNum === quoteNum ? { ...q, status: newStatus } : q));
     
     // Update API
-    fetch(`http://localhost:5051/api/quotes/${quoteNum}/status`, {
+    fetch(getApiUrl(`/api/quotes/${quoteNum}/status`), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })

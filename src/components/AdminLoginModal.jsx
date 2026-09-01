@@ -1,60 +1,65 @@
 import React, { useState } from 'react';
-import { KeyRound, Mail, X, CheckCircle, ArrowRight, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { X, KeyRound, Mail, CheckCircle, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+
+const getApiUrl = (endpoint) => {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return `http://localhost:5051${endpoint}`;
+  }
+  return endpoint;
+};
 
 export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
-  const [step, setStep] = useState(1); // 1: Email Input, 2: OTP Input
-  const [email, setEmail] = useState('admin@bioforce.com');
+  if (!isOpen) return null;
+
+  const AUTHORIZED_EMAIL = '2@bioforcemil.com';
+
+  const [step, setStep] = useState(1); // 1: Email Request, 2: OTP Verification
+  const [email, setEmail] = useState(AUTHORIZED_EMAIL);
   const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [devCodeNote, setDevCodeNote] = useState('');
+  const [successNote, setSuccessNote] = useState('');
 
-  if (!isOpen) return null;
-
-  // Step 1: Send OTP Code via Resend
+  // Step 1: Request OTP via Resend
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (!email) {
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail) {
       setErrorMsg('Ingresa un correo electrónico válido.');
       return;
     }
 
     setLoading(true);
     setErrorMsg('');
-    setDevCodeNote('');
+    setSuccessNote('');
 
     try {
-      const response = await fetch('http://localhost:5051/api/auth/send-otp', {
+      const response = await fetch(getApiUrl('/api/auth/send-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email: cleanEmail })
       });
       const data = await response.json();
 
       if (response.ok && data.success) {
         setStep(2);
-        if (data.devCode) {
-          setDevCodeNote(`Modo Dev (Código OTP generado): ${data.devCode}`);
-        }
+        setSuccessNote(`Código de verificación de 6 dígitos enviado a ${cleanEmail}`);
       } else {
-        setErrorMsg(data.error || 'Error enviando el código OTP.');
+        setErrorMsg(data.error || 'Error al enviar el código de seguridad.');
       }
     } catch (err) {
-      // Fallback dev mode code generator if API server is offline
-      const devCode = Math.floor(100000 + Math.random() * 900000).toString();
-      setStep(2);
-      setDevCodeNote(`Código de prueba local: ${devCode}`);
-      localStorage.setItem('temp_dev_otp', devCode);
+      setErrorMsg('Error de conexión con el servidor de autenticación.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 2: Verify OTP Code
+  // Step 2: Verify OTP
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otpCode || otpCode.length < 4) {
-      setErrorMsg('Ingresa el código OTP de 6 dígitos.');
+      setErrorMsg('Ingresa el código OTP de 6 dígitos recibido en tu correo.');
       return;
     }
 
@@ -62,7 +67,7 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
     setErrorMsg('');
 
     try {
-      const response = await fetch('http://localhost:5051/api/auth/verify-otp', {
+      const response = await fetch(getApiUrl('/api/auth/verify-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: otpCode })
@@ -74,74 +79,60 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
         onLoginSuccess(data.user);
         onClose();
       } else {
-        // Fallback local check
-        const savedDev = localStorage.getItem('temp_dev_otp');
-        if (savedDev && savedDev === otpCode.trim()) {
-          onLoginSuccess({ email, role: 'ADMIN', name: 'Administrador Bioforce' });
-          onClose();
-        } else {
-          setErrorMsg(data.error || 'Código OTP incorrecto.');
-        }
+        setErrorMsg(data.error || 'Código OTP incorrecto o expirado.');
       }
     } catch (err) {
-      // Fallback check
-      const savedDev = localStorage.getItem('temp_dev_otp');
-      if (savedDev && savedDev === otpCode.trim()) {
-        onLoginSuccess({ email, role: 'ADMIN', name: 'Administrador Bioforce' });
-        onClose();
-      } else {
-        setErrorMsg('Código OTP inválido.');
-      }
+      setErrorMsg('Error al verificar el código OTP.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-card" style={{ maxWidth: '460px', padding: '2rem' }}>
-        <div className="modal-header">
-          <h2 style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--brand-navy)' }}>
-            <KeyRound size={22} style={{ color: 'var(--brand-green)' }} /> Acceso Administrador (Resend OTP)
-          </h2>
-          <button className="close-btn" onClick={onClose}>
-            <X size={18} />
-          </button>
+    <div className="modal-overlay" style={{ background: 'rgba(6, 21, 43, 0.8)', backdropFilter: 'blur(8px)' }}>
+      <div className="modal-content card" style={{ maxWidth: '480px', width: '100%', padding: '2rem', position: 'relative' }}>
+        <button className="modal-close" onClick={onClose}>
+          <X size={20} />
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          <div style={{ background: 'rgba(0, 184, 101, 0.1)', color: 'var(--brand-green)', padding: '10px', borderRadius: '12px' }}>
+            <KeyRound size={24} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '1.25rem', color: 'var(--brand-navy)', fontWeight: '800', margin: 0 }}>Acceso de Administrador</h3>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Autenticación por código OTP (Resend SDK)</span>
+          </div>
         </div>
 
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-          {step === 1 
-            ? 'Ingresa tu correo institucional para recibir un código OTP de acceso enviado por Resend.'
-            : `Ingresa el código OTP de 6 dígitos que enviamos a ${email}.`}
-        </p>
-
         {errorMsg && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#991b1b', padding: '0.75rem', borderRadius: '8px', fontSize: '0.82rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircle size={16} /> {errorMsg}
+          <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#991b1b', padding: '0.75rem', borderRadius: '8px', fontSize: '0.82rem', marginBottom: '1rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div>{errorMsg}</div>
           </div>
         )}
 
-        {devCodeNote && (
-          <div style={{ background: '#e6f7ef', border: '1px solid #00b865', color: '#00b865', padding: '0.75rem', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 'bold', marginBottom: '1rem', textAlign: 'center' }}>
-            {devCodeNote}
+        {successNote && (
+          <div style={{ background: '#e6f7ef', border: '1px solid #00b865', color: '#00b865', padding: '0.75rem', borderRadius: '8px', fontSize: '0.82rem', fontWeight: '700', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckCircle size={18} /> {successNote}
           </div>
         )}
 
         {step === 1 ? (
           <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div className="input-field-group">
-              <label><Mail size={13} style={{ display: 'inline', marginRight: 4 }} /> Correo Electrónico Administrador</label>
+              <label><Mail size={13} style={{ display: 'inline', marginRight: 4 }} /> Correo Electrónico Institucional</label>
               <input
                 type="email"
-                placeholder="admin@bioforce.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="2@bioforcemil.com"
                 required
               />
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading} style={{ justifyContent: 'center', padding: '0.85rem' }}>
-              {loading ? 'Enviando Correo Resend...' : 'Enviar Código OTP con Resend'} <ArrowRight size={16} />
+              {loading ? 'Enviando Código...' : '📩 Solicitar Código OTP a mi Correo'}
             </button>
           </form>
         ) : (
@@ -150,11 +141,11 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
               <label><ShieldCheck size={13} style={{ display: 'inline', marginRight: 4 }} /> Código OTP (6 dígitos)</label>
               <input
                 type="text"
-                placeholder="Ej. 849201"
+                placeholder="• • • • • •"
                 maxLength={6}
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value)}
-                style={{ textAlign: 'center', fontSize: '1.4rem', letterSpacing: '6px', fontWeight: 'bold' }}
+                style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '8px', fontWeight: '900', color: 'var(--brand-navy)' }}
                 autoFocus
                 required
               />
@@ -165,7 +156,7 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
                 Atrás
               </button>
               <button type="submit" className="btn btn-primary" disabled={loading} style={{ flex: 2, justifyContent: 'center' }}>
-                {loading ? 'Verificando...' : 'Verificar & Entrar'}
+                {loading ? 'Verificando...' : '🚀 Entrar'}
               </button>
             </div>
           </form>
