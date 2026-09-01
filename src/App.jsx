@@ -210,16 +210,16 @@ export default function App() {
   const [applyDeducible, setApplyDeducible] = useState(false);
   const [deducibleAmount, setDeducibleAmount] = useState(currentSaludsaPlan.deducibleDefault);
 
-  // Patient clinical data state
+  // Patient clinical data state (Empty initial state for new patient entries)
   const [patientInfo, setPatientInfo] = useState({
-    nombres: 'Edwin',
-    apellidos: 'Ayala',
-    cedula: '1716626435',
-    dob: '1982-01-25',
+    nombres: '',
+    apellidos: '',
+    cedula: '',
+    dob: '',
     date: now.toISOString().split('T')[0],
     time: currentTimeString,
-    diagnostico: 'Tendinitis Rotuliana (Rodilla del Saltador)',
-    cie10: 'M76.5',
+    diagnostico: '',
+    cie10: '',
     quoteNum: 'COT-' + Math.floor(1000 + Math.random() * 9000)
   });
 
@@ -227,17 +227,9 @@ export default function App() {
   const calculatedAge = calculateAge(patientInfo.dob);
   const fullName = `${patientInfo.nombres} ${patientInfo.apellidos}`.trim();
 
-  // Sessions state (Default: 12 Terapias + 6 Ondas + 2 PRP + 2 Laser)
-  const [copagoSessions, setCopagoSessions] = useState({
-    evaluacion: 1,
-    terapia: 12
-  });
-
-  const [reembolsoSessions, setReembolsoSessions] = useState({
-    ondas: 6,
-    prp: 2,
-    laser: 2
-  });
+  // Sessions state (Empty initial state so receptionists type fresh patient quotes)
+  const [copagoSessions, setCopagoSessions] = useState({});
+  const [reembolsoSessions, setReembolsoSessions] = useState({});
 
   // Percentage splits
   const [copagoPatientPercent, setCopagoPatientPercent] = useState(30);
@@ -560,6 +552,34 @@ export default function App() {
     triggerToast(`Estado del reembolso actualizado a: ${newStatus}`);
   };
 
+  // Direct WhatsApp Sender to +593 964 162 14
+  const handleSendWhatsAppDirect = () => {
+    const targetPhone = '59396416214';
+    const message = `🏥 *BIOFORCE MEDICAL CENTER*
+*COTIZACIÓN OFICIAL DE CONVENIO SALUDSA*
+----------------------------------------
+📋 *Cotización:* ${patientInfo.quoteNum}
+👤 *Paciente:* ${fullName || 'Paciente General'}
+💳 *Cédula:* ${patientInfo.cedula || 'N/A'}
+🩺 *Diagnóstico:* ${patientInfo.diagnostico || 'Atención Fisioterapéutica'} (${patientInfo.cie10 || 'CIE-10'})
+🏢 *Plan Saludsa:* ${currentSaludsaPlan.name}
+
+----------------------------------------
+💰 *PRECIO TOTAL TRATAMIENTO:* $${grandTotalTreatmentValue.toFixed(2)}
+💵 *TOTAL A PAGAR HOY EN BIOFORCE:* $${totalPayTodayAtBioforce.toFixed(2)}
+🎁 *BENEFICIO / REEMBOLSO SALUDSA:* $${totalSaludsaBenefit.toFixed(2)}
+✨ *COSTO NETO FINAL PARA EL PACIENTE:* $${netFinalPatientCost.toFixed(2)}
+
+----------------------------------------
+📍 *Bioforce Medical Center*
+📞 Consultas & Citas WhatsApp: +593 964 162 14`;
+
+    const encodedMsg = encodeURIComponent(message);
+    const waUrl = `https://wa.me/${targetPhone}?text=${encodedMsg}`;
+    window.open(waUrl, '_blank');
+    triggerToast('📱 Abriendo WhatsApp (+593 964 162 14) con la cotización...');
+  };
+
   // Render Landing Page if currentView is 'landing' or !adminUser (Strict OTP Auth)
   if (currentView === 'landing' || !adminUser) {
     return (
@@ -646,6 +666,10 @@ export default function App() {
             setIsPrintModalOpen(true);
           }}>
             <Printer size={16} /> Generar Cotización / PDF
+          </button>
+
+          <button className="btn" onClick={handleSendWhatsAppDirect} style={{ background: '#25D366', color: '#ffffff', fontWeight: '800', border: 'none', boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)' }}>
+            <QrCode size={16} /> Enviar WhatsApp (+593 964 162 14)
           </button>
         </div>
       </header>
