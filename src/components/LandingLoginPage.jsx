@@ -1,0 +1,364 @@
+import React, { useState } from 'react';
+import { 
+  KeyRound, 
+  Mail, 
+  CheckCircle, 
+  ArrowRight, 
+  ShieldCheck, 
+  Sparkles, 
+  AlertCircle, 
+  Activity, 
+  FileText, 
+  Database, 
+  Building2, 
+  Zap,
+  Lock,
+  Heart,
+  Award,
+  Users,
+  Stethoscope,
+  ChevronRight
+} from 'lucide-react';
+
+export default function LandingLoginPage({ onLoginSuccess, onGuestAccess }) {
+  const DEFAULT_EMAIL = '2@bioforcemil.com';
+
+  const [step, setStep] = useState(1); // 1: Email Request, 2: OTP Verification
+  const [email, setEmail] = useState(DEFAULT_EMAIL);
+  const [otpCode, setOtpCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successNote, setSuccessNote] = useState('');
+
+  // Step 1: Request OTP via Resend
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail) {
+      setErrorMsg('Ingresa un correo electrónico válido.');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg('');
+    setSuccessNote('');
+
+    try {
+      const response = await fetch('http://localhost:5051/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail })
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setStep(2);
+        setSuccessNote(`Código de verificación de 6 dígitos enviado a ${cleanEmail}`);
+      } else {
+        setErrorMsg(data.error || 'Error al enviar el código de seguridad.');
+      }
+    } catch (err) {
+      setErrorMsg('Error de conexión con el servidor de autenticación.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Verify OTP
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.length < 4) {
+      setErrorMsg('Ingresa el código OTP de 6 dígitos recibido en tu correo.');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg('');
+
+    try {
+      const response = await fetch('http://localhost:5051/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: otpCode })
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        localStorage.setItem('bioforce_admin_token', data.token);
+        onLoginSuccess(data.user);
+      } else {
+        setErrorMsg(data.error || 'Código OTP incorrecto o expirado.');
+      }
+    } catch (err) {
+      setErrorMsg('Error al verificar el código OTP.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%)',
+      padding: '2.5rem 1.5rem 5rem 1.5rem',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }}>
+      {/* Hero Banner Container */}
+      <div style={{
+        maxWidth: '1200px',
+        width: '100%',
+        background: 'linear-gradient(135deg, #06152b 0%, #0a2540 60%, #0044aa 100%)',
+        borderRadius: 'var(--radius-xl)',
+        padding: '3rem 3.5rem',
+        boxShadow: '0 20px 50px rgba(6, 21, 43, 0.3)',
+        marginBottom: '2.5rem',
+        position: 'relative',
+        overflow: 'hidden',
+        color: '#ffffff'
+      }}>
+        {/* Background Cadet PT Image Overlay */}
+        <div style={{
+          position: 'absolute',
+          top: 0, right: 0, bottom: 0, width: '55%',
+          backgroundImage: 'url("/cadet_pt.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: 0.35,
+          maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+          WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)'
+        }}></div>
+
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '2.5rem', flexWrap: 'wrap' }}>
+          <div className="logo-img-wrapper" style={{ width: '125px', height: '125px', borderWidth: '4px' }}>
+            <img src="/logo-bioforce.jpg" alt="Logo Bioforce" className="logo-img" />
+          </div>
+
+          <div style={{ flex: 1, minWidth: '300px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0, 184, 101, 0.18)', border: '1.5px solid #00b865', color: '#00d06c', padding: '5px 16px', borderRadius: '20px', fontWeight: '800', fontSize: '0.82rem', marginBottom: '0.85rem' }}>
+              <Sparkles size={15} /> BIOMECÁNICA DEPORTIVA & RENDIMIENTO FÍSICO MILITAR
+            </div>
+            
+            <h1 style={{ fontSize: '2.8rem', fontWeight: '900', color: '#ffffff', lineHeight: '1.05', letterSpacing: '-0.5px' }}>
+              BIO<span style={{ color: '#00b865' }}>FORCE</span> MEDICAL CENTER
+            </h1>
+            
+            <p style={{ fontSize: '1.1rem', color: '#e2e8f0', fontWeight: '500', marginTop: '0.6rem', maxWidth: '650px', lineHeight: '1.5' }}>
+              Plataforma Especializada en Rehabilitación Traumatológica de Cadetes & Cotización de Convenios de Saludsa.
+            </p>
+
+            <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem', fontSize: '0.85rem', color: '#cbd5e1', fontWeight: '700' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <CheckCircle size={16} style={{ color: '#00b865' }} /> Fisioterapia de Cadetes Militaries
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <CheckCircle size={16} style={{ color: '#00b865' }} /> Convenios Saludsa / Humana / BMI
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <CheckCircle size={16} style={{ color: '#00b865' }} /> Firma Dra. Elena Analuisa
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid: Custom Cadet Photography Showcase vs Clean Login Portal */}
+      <div style={{
+        maxWidth: '1200px',
+        width: '100%',
+        display: 'grid',
+        gridTemplateColumns: '1.3fr 1fr',
+        gap: '2.5rem'
+      }}>
+        
+        {/* Left Column: Custom Generated Cadet Photography Showcase */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+          
+          {/* Cadet Physical Therapy Card 1 */}
+          <div style={{
+            background: '#ffffff',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: 'var(--radius-xl)',
+            overflow: 'hidden',
+            boxShadow: '0 12px 30px rgba(0,0,0,0.04)',
+            display: 'grid',
+            gridTemplateColumns: '220px 1fr'
+          }}>
+            <div style={{
+              backgroundImage: 'url("/cadet_pt.jpg")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              minHeight: '180px'
+            }}></div>
+            <div style={{ padding: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.15rem', color: '#06152b', fontWeight: '800', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Activity size={20} style={{ color: '#00b865' }} /> Fisioterapia y Biomecánica para Cadetes
+              </h3>
+              <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: '1.6', fontWeight: '500' }}>
+                Atención especializada en rehabilitación de lesiones deportivas y traumatológicas de cadetes. Recuperación funcional de rodilla, columna y hombro con fisioterapeutas certificados de <strong>Bioforce</strong>.
+              </p>
+            </div>
+          </div>
+
+          {/* Cadet Laser & Advanced Technology Card 2 */}
+          <div style={{
+            background: '#ffffff',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: 'var(--radius-xl)',
+            overflow: 'hidden',
+            boxShadow: '0 12px 30px rgba(0,0,0,0.04)',
+            display: 'grid',
+            gridTemplateColumns: '220px 1fr'
+          }}>
+            <div style={{
+              backgroundImage: 'url("/cadet_laser.jpg")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              minHeight: '180px'
+            }}></div>
+            <div style={{ padding: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.15rem', color: '#06152b', fontWeight: '800', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <ShieldCheck size={20} style={{ color: '#0077ff' }} /> Tecnología Láser & Ondas de Choque
+              </h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: '#334155' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#00b865', flexShrink: 0 }}></span>
+                  <span><strong>Cotización Automática Saludsa</strong>: Cobertura ambulatoria y reembolsos.</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#00b865', flexShrink: 0 }}></span>
+                  <span><strong>Matriz de Planes Oficiales</strong>: Star30K, Star15K, Star Lite, Sky70K.</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#00b865', flexShrink: 0 }}></span>
+                  <span><strong>30 Patologías CIE-10</strong>: Catálogo por regiones anatómicas.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bioforce Excellence Banner */}
+          <div style={{
+            background: 'linear-gradient(135deg, #00b865 0%, #009850 100%)',
+            color: '#ffffff',
+            borderRadius: 'var(--radius-xl)',
+            padding: '1.5rem 1.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1.5rem',
+            boxShadow: '0 12px 30px rgba(0, 184, 101, 0.25)'
+          }}>
+            <div>
+              <span style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', color: '#e6f7ef', display: 'block' }}>BIOFORCE MILITARY EXCELLENCE</span>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: '900', margin: 0, color: '#ffffff' }}>
+                RENDIMIENTO FÍSICO & RECUPERACIÓN DE CADETES
+              </h4>
+              <p style={{ fontSize: '0.82rem', color: '#e6f7ef', marginTop: '2px', margin: 0 }}>
+                Certificaciones de rehabilitación avanzada para aseguradoras con firma médica autorizada.
+              </p>
+            </div>
+            <Award size={36} style={{ color: '#ffffff', opacity: 0.9, flexShrink: 0 }} />
+          </div>
+
+        </div>
+
+        {/* Right Column: Premium High-Tech Login Portal */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          
+          <div style={{
+            background: '#ffffff',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: 'var(--radius-xl)',
+            padding: '2.25rem',
+            boxShadow: '0 20px 45px rgba(6, 21, 43, 0.08)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.75rem' }}>
+              <div style={{ background: 'linear-gradient(135deg, #00b865 0%, #0077ff 100%)', color: '#ffffff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 16px rgba(0, 184, 101, 0.3)' }}>
+                <Lock size={24} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.3rem', color: '#06152b', fontWeight: '900', margin: 0 }}>Acceso de Administrador</h3>
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: '600' }}>Autenticación segura por código OTP</span>
+              </div>
+            </div>
+
+            {errorMsg && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#991b1b', padding: '0.85rem', borderRadius: '8px', fontSize: '0.82rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>{errorMsg}</div>
+              </div>
+            )}
+
+            {successNote && (
+              <div style={{ background: '#e6f7ef', border: '1px solid #00b865', color: '#00b865', padding: '0.85rem', borderRadius: '8px', fontSize: '0.82rem', fontWeight: '700', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <CheckCircle size={18} /> {successNote}
+              </div>
+            )}
+
+            {step === 1 ? (
+              <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="input-field-group">
+                  <label><Mail size={13} style={{ display: 'inline', marginRight: 4 }} /> Correo Electrónico Institucional</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="2@bioforcemil.com"
+                    style={{ fontSize: '0.95rem', padding: '0.8rem 1rem' }}
+                    required
+                  />
+                </div>
+
+                <button type="submit" className="btn btn-primary" disabled={loading} style={{ justifyContent: 'center', padding: '0.95rem', fontSize: '0.95rem', fontWeight: '800' }}>
+                  {loading ? 'Enviando Código...' : '📩 Solicitar Código de Seguridad OTP'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="input-field-group">
+                  <label><ShieldCheck size={13} style={{ display: 'inline', marginRight: 4 }} /> Código OTP (6 dígitos)</label>
+                  <input
+                    type="text"
+                    placeholder="• • • • • •"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value)}
+                    style={{ textAlign: 'center', fontSize: '1.75rem', letterSpacing: '10px', fontWeight: '900', color: '#06152b', background: '#f8fafc', padding: '0.75rem' }}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setStep(1)} style={{ flex: 1 }}>
+                    Atrás
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={loading} style={{ flex: 2, justifyContent: 'center', padding: '0.9rem', fontWeight: '800' }}>
+                    {loading ? 'Verificando...' : '🚀 Entrar a la Plataforma'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Guest Direct Access Button */}
+          <div style={{ textAlign: 'center' }}>
+            <button 
+              className="btn btn-outline"
+              onClick={onGuestAccess}
+              style={{ width: '100%', justifyContent: 'center', padding: '0.9rem', fontSize: '0.88rem', fontWeight: '700' }}
+            >
+              <span>Acceder como Personal de Recepción (Cotizador)</span>
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,61 @@
+// Prisma schema for Bioforce Medical Platform (Neon PostgreSQL + Resend Auth)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Quote {
+  id                       String   @id @default(uuid())
+  quoteNum                 String   @unique
+  date                     String
+  time                     String
+  patientName              String
+  nombres                  String?
+  apellidos                String?
+  cedula                   String?
+  dob                      String?
+  diagnostico              String?
+  cie10                    String?
+  providerId               String?
+  providerName             String?
+  planName                 String?
+  totalSessions            Int      @default(0)
+  grandTotalTreatmentValue Float    @default(0.0)
+  totalPayTodayAtBioforce  Float    @default(0.0)
+  reembolsoRefundAmt       Float    @default(0.0)
+  netFinalPatientCost      Float    @default(0.0)
+  status                   String   @default("Atendido")
+  jsonData                 String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
+
+model PriceSetting {
+  id          String   @id @default(uuid())
+  treatmentId String   @unique
+  price       Float
+  updatedAt   DateTime @updatedAt
+}

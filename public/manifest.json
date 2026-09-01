@@ -1,0 +1,16 @@
+{
+  "short_name": "Bioforce",
+  "name": "Bioforce Medical Platform • Calculadora de Convenios",
+  "icons": [
+    {
+      "src": "/logo-bioforce.jpg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#06152b",
+  "theme_color": "#00b865",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}

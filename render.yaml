@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: bioforce-plataforma-medica
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build && npx prisma generate
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: ADMIN_EMAIL
+        value: 2@bioforcemil.com
+      - key: DOMAIN_NAME
+        value: esmabioforce.com
+      - key: JWT_SECRET
+        generateValue: true
