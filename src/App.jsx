@@ -245,14 +245,26 @@ export default function App() {
 
   // CRM Quotes History Persistence
   const [quotesHistory, setQuotesHistory] = useState(() => {
-    const saved = localStorage.getItem('bioforce_crm_quotes_v7');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('bioforce_crm_quotes_v7');
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
   });
 
   // Price overrides
   const [pricesState, setPricesState] = useState(() => {
-    const saved = localStorage.getItem('bioforce_saludsa_prices_v14');
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = localStorage.getItem('bioforce_saludsa_prices_v14');
+      if (!saved) return {};
+      const parsed = JSON.parse(saved);
+      return (parsed && typeof parsed === 'object') ? parsed : {};
+    } catch (e) {
+      return {};
+    }
   });
 
   // Modals state
