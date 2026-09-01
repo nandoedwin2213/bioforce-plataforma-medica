@@ -188,10 +188,8 @@ export default function App() {
     }
   });
 
-  // View state: 'landing' vs 'app'
-  const [currentView, setCurrentView] = useState(() => {
-    return adminUser ? 'app' : 'landing';
-  });
+  // View state: ALWAYS default to 'landing' so EVERY visit (cell phone or desktop) loads the Landing Page first!
+  const [currentView, setCurrentView] = useState('landing');
 
   // Toast State
   const [toastMessage, setToastMessage] = useState('');
