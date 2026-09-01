@@ -176,16 +176,21 @@ export default function App() {
   const now = new Date();
   const currentTimeString = now.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
 
-  // View state: 'landing' vs 'app'
-  const [currentView, setCurrentView] = useState(() => {
-    const savedUser = localStorage.getItem('bioforce_admin_user');
-    return savedUser ? 'app' : 'landing';
-  });
-
   // Admin User Auth State (Resend OTP)
   const [adminUser, setAdminUser] = useState(() => {
-    const saved = localStorage.getItem('bioforce_admin_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('bioforce_admin_user');
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      return (parsed && parsed.email) ? parsed : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  // View state: 'landing' vs 'app'
+  const [currentView, setCurrentView] = useState(() => {
+    return adminUser ? 'app' : 'landing';
   });
 
   // Toast State
